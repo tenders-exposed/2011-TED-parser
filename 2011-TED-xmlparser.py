@@ -4,10 +4,12 @@
 from bs4 import BeautifulSoup as bs
 import glob, os, re, csv
 
+xmlnum = 0
+
 def parse(xmlfile):
 
     global xmlnum
-    # numbers in the function names represents how deep in the tree the function needs to go
+    # numbers in the function names represents how deep in the tree teh function needs to go
     # and if it needs to get an attribute of that tag or parse numbers
 
     def iferror1(tagname):
@@ -183,6 +185,39 @@ def parse(xmlfile):
         row.append(contract)
     
     if len(row) == 0:
+#        print row
         row.append(url)
     
     return row
+
+######## get ready.. write!
+######## use for end xml files in directory alltar
+
+missing = open("TED-contracts-2011/missing_tenders.csv", "w") #catch xmls with different structure
+
+for nr in xrange(1,253):
+
+    filenr = str(nr).zfill(3)
+    print filenr
+   
+    # initiate csv file and add header
+    outputfile = open("TED-contracts-2011/contracts"+filenr+".csv", "w")
+    writer = csv.writer(outputfile)
+
+    missingWriter = csv.writer(missing)
+
+    header = ["notice_dispatch_year","notice_dispatch_month","notice_dispatch_day","doc_number","doc_type","contract_type","proc_type","regulation_type","bid_type","award_criteria_type","framework","eu_project","GPA","country","NUTS","cpv","contract_number","contract_id","title_contract","short_contract_description","additional_info","contract_value","contract_currency","authority_name","authority_address","authority_town","authority_postal_code","authority_country","authority_contact_person","authority_www","authority_type","auth_type","contract_title","lot","nr_bids","contract_award_day","contract_award_month","contract_award_year","company_name","company_address","company_town","company_postal_code","company_country","initial_value","initial_value_vat_percent","total_value","total_value_vat_percent","url"]
+
+    writer.writerow(header)
+
+    for f in glob.glob('alltar/*_'+filenr+'/*.xml'):
+        filename = open(f).read()
+        row = parse(filename)
+        
+        if row == None:
+            continue
+        elif 'http' in row[0]:
+            missingWriter.writerow([row, f])
+        else:
+            writer.writerows(row)
+
